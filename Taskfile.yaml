@@ -1,0 +1,67 @@
+version: '3'
+
+dotenv: ['.env']
+
+tasks:
+  tools:
+    desc: Установить инструменты для генерации proto
+    cmds:
+      - go install github.com/bufbuild/buf/cmd/buf@latest
+      - go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+      - go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+
+  generate:
+    desc: Сгенерировать Go-код из proto
+    sources:
+      - api/proto/**/*.proto
+      - buf.yaml
+      - buf.gen.yaml
+    generates:
+      - gen/**/*.go
+    cmds:
+      - buf generate
+
+  proto:lint:
+    desc: Проверить proto-файлы
+    cmds:
+      - buf lint
+
+  db:up:
+    desc: Поднять Postgres
+    cmds:
+      - docker compose up -d postgres
+
+  db:down:
+    desc: Остановить Postgres
+    cmds:
+      - docker compose down
+
+  migrate:create:
+    desc: 'Создать миграцию (пример: task migrate:create -- add_index)'
+    requires:
+      vars: [CLI_ARGS]
+    cmds:
+      - go run github.com/pressly/goose/v3/cmd/goose@v3.28.0 -dir migrations create {{.CLI_ARGS}} sql
+
+  run:
+    desc: Запустить сервис
+    deps: [generate]
+    cmds:
+      - go run ./cmd/data-aggregation-service
+
+  build:
+    desc: Собрать бинарник в bin/
+    deps: [generate]
+    cmds:
+      - go build -o bin/data-aggregation-service{{exeExt}} ./cmd/data-aggregation-service
+
+  test:
+    desc: Запустить тесты
+    cmds:
+      - go test ./...
+
+  lint:
+    desc: Проверить форматирование и go vet
+    cmds:
+      - test -z "$(gofmt -l ./internal ./cmd)" || (gofmt -l ./internal ./cmd && exit 1)
+      - go vet ./...

@@ -1,0 +1,12 @@
+worker-pool:
+  size: 10
+  tasks-buf: 100
+  errors-buf: 100
+database:
+  migrations-path: "migrations"
+http:
+  addr: ":8082"
+  read-header-timeout: 5s
+grpc:
+  addr: ":9090"
+shutdown-timeout: 20s

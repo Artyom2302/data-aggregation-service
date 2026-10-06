@@ -1,0 +1,26 @@
+syntax = "proto3";
+package dataaggregation.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "data-aggregation-service/gen/dataaggregation/v1;dataaggregationv1";
+
+service DataAggregationService{
+  rpc GetPackages(GetPackagesRequest) returns (GetPackagesResponse);
+}
+
+message GetPackagesRequest{
+  repeated string  ids = 1;
+  google.protobuf.Timestamp from = 2;
+  google.protobuf.Timestamp to = 3;
+}
+
+message DataPackage{
+  string id = 1;
+  google.protobuf.Timestamp created_at = 2;
+  int64 payload = 3;
+}
+
+message GetPackagesResponse{
+  repeated DataPackage packages = 1;
+}
