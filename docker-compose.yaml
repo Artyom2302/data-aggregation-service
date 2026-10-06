@@ -10,5 +10,26 @@ services:
       - "5432:5432"
     volumes:
       - postgres18_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  app:
+    build: .
+    container_name: data_aggregation_service
+    environment:
+      DSN_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+    ports:
+      - "8082:8082"
+      - "9090:9090"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    stop_grace_period: 25s
+    restart: unless-stopped
+
 volumes:
   postgres18_data:

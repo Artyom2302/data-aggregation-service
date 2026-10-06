@@ -26,6 +26,21 @@ tasks:
     cmds:
       - buf lint
 
+  up:
+    desc: Собрать и запустить сервис вместе с Postgres в Docker
+    cmds:
+      - docker compose up -d --build
+
+  down:
+    desc: Остановить сервис и Postgres (данные базы сохраняются)
+    cmds:
+      - docker compose down
+
+  logs:
+    desc: Логи сервиса в Docker
+    cmds:
+      - docker compose logs -f app
+
   db:up:
     desc: Поднять Postgres
     cmds:

@@ -4,6 +4,8 @@ import (
 	"context"
 	"data-aggregation-service/internal/app"
 	"data-aggregation-service/internal/config"
+	"errors"
+	"io/fs"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -15,7 +17,7 @@ import (
 func main() {
 	log := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
-	if err := godotenv.Load(); err != nil {
+	if err := godotenv.Load(); err != nil && !errors.Is(err, fs.ErrNotExist) {
 		log.Warn(".env not loaded", "err", err)
 	}
 
