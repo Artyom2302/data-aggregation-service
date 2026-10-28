@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	pb "data-aggregation-service/gen/dataaggregation/v1"
+	"data-aggregation-service/internal/adapter/kafka"
 	"data-aggregation-service/internal/adapter/storage/postgres"
 	"data-aggregation-service/internal/adapter/web/grpcapi"
 	"data-aggregation-service/internal/adapter/web/rest"
@@ -48,8 +49,11 @@ func Run(ctx context.Context, cfg *config.Config, log *slog.Logger) error {
 
 	httpSrv := &http.Server{
 		Addr:              cfg.HTTP.Addr,
-		Handler:           handler.Routes(),
+		Handler:           http.TimeoutHandler(handler.Routes(), cfg.HTTP.HandlerTimeout, "request timeout"),
 		ReadHeaderTimeout: cfg.HTTP.ReadHeaderTimeout,
+		ReadTimeout:       cfg.HTTP.ReadTimeout,
+		WriteTimeout:      cfg.HTTP.WriteTimeout,
+		IdleTimeout:       cfg.HTTP.IdleTimeout,
 	}
 	grpcSrv := grpc.NewServer()
 	pb.RegisterDataAggregationServiceServer(grpcSrv, grpcapi.NewServer(log, queryUC))
@@ -66,11 +70,23 @@ func Run(ctx context.Context, cfg *config.Config, log *slog.Logger) error {
 		}
 	}()
 
+	initCtx, cancel = context.WithTimeout(ctx, initTimeout)
+	kafkaConsumer, err := kafka.NewKafkaAdapter(initCtx, cfg.Kafka.Brokers, cfg.Kafka.Topic, cfg.Kafka.GroupID, log)
+	cancel()
+	if err != nil {
+		return err
+	}
+	defer kafkaConsumer.Close()
+
 	packages := make(chan domain.RawPackage)
 	consumer := source.NewConsumer(packages, aggregateUC, wp, taskTimeout, log)
 
 	g, gctx := errgroup.WithContext(ctx)
 
+	g.Go(func() error {
+		log.Info("kafka consumer started", "topic", cfg.Kafka.Topic, "group", cfg.Kafka.GroupID)
+		return kafkaConsumer.Run(gctx, packages)
+	})
 	g.Go(func() error {
 		return consumer.Run(gctx)
 	})

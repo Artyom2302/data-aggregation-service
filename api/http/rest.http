@@ -1,0 +1,67 @@
+# REST API. Окружение: local (http-client.env.json).
+# id пакетов в окружении взяты из локальной базы: подставьте свои,
+# например из `select id from data_package limit 2`.
+
+### Пакеты по id за период
+POST {{httpHost}}/packages
+Content-Type: application/json
+
+{
+  "ids": ["{{packageId1}}", "{{packageId2}}"],
+  "from": "{{from}}",
+  "to": "{{to}}"
+}
+
+### Неизвестный id: пустой список
+POST {{httpHost}}/packages
+Content-Type: application/json
+
+{
+  "ids": ["00000000-0000-0000-0000-000000000000"],
+  "from": "{{from}}",
+  "to": "{{to}}"
+}
+
+### 400: не указаны from и to
+POST {{httpHost}}/packages
+Content-Type: application/json
+
+{
+  "ids": ["{{packageId1}}"]
+}
+
+### 400: пустой список ids
+POST {{httpHost}}/packages
+Content-Type: application/json
+
+{
+  "ids": [],
+  "from": "{{from}}",
+  "to": "{{to}}"
+}
+
+### 400: from позже to
+POST {{httpHost}}/packages
+Content-Type: application/json
+
+{
+  "ids": ["{{packageId1}}"],
+  "from": "{{to}}",
+  "to": "{{from}}"
+}
+
+### 400: невалидный uuid
+POST {{httpHost}}/packages
+Content-Type: application/json
+
+{
+  "ids": ["not-a-uuid"],
+  "from": "{{from}}",
+  "to": "{{to}}"
+}
+
+### 415: неверный Content-Type
+POST {{httpHost}}/packages
+Content-Type: text/plain
+
+{}

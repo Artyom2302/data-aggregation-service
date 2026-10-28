@@ -41,7 +41,9 @@ func (r *Repository) Close() {
 
 func (r *Repository) SaveDataPackage(ctx context.Context, data domain.DataPackage) error {
 	_, err := r.pgx.Exec(ctx,
-		`INSERT INTO data_package (id, created_at, payload) VALUES ($1, $2, $3)`,
+
+		`INSERT INTO data_package (id, created_at, payload) VALUES ($1, $2, $3)
+		ON CONFLICT (id) DO NOTHING`,
 		data.ID, data.CreatedAt, data.Payload,
 	)
 	if err != nil {

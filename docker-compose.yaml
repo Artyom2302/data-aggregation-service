@@ -20,10 +20,9 @@ services:
     build: .
     container_name: data_aggregation_service
     environment:
-      DSN_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
-    ports:
-      - "8082:8082"
-      - "9090:9090"
+      DSN_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:5432/${POSTGRES_DB}?sslmode=disable
+    # Сеть хоста: Postgres, Kafka (localhost:9092) и порты 8082/9090 доступны через localhost.
+    network_mode: host
     depends_on:
       postgres:
         condition: service_healthy

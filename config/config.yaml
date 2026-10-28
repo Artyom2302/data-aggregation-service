@@ -4,9 +4,18 @@ worker-pool:
   errors-buf: 100
 database:
   migrations-path: "migrations"
+kafka:
+  brokers:
+    - localhost:9092
+  topic: raw-packages
+  group-id: data-aggregation-service
 http:
   addr: ":8082"
   read-header-timeout: 5s
+  read-timeout: 10s
+  write-timeout: 10s
+  idle-timeout: 60s
+  handler-timeout: 5s
 grpc:
   addr: ":9090"
 shutdown-timeout: 20s

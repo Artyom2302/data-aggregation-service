@@ -1,0 +1,47 @@
+# gRPC API. Окружение: local (http-client.env.json).
+# Схема берётся через server reflection, отдельный .proto подключать не нужно.
+
+### Пакеты по id за период
+GRPC {{grpcHost}}/dataaggregation.v1.DataAggregationService/GetPackages
+
+{
+  "ids": ["{{packageId1}}", "{{packageId2}}"],
+  "from": "{{from}}",
+  "to": "{{to}}"
+}
+
+### Неизвестный id: пустой список
+GRPC {{grpcHost}}/dataaggregation.v1.DataAggregationService/GetPackages
+
+{
+  "ids": ["00000000-0000-0000-0000-000000000000"],
+  "from": "{{from}}",
+  "to": "{{to}}"
+}
+
+### InvalidArgument: пустой список ids
+GRPC {{grpcHost}}/dataaggregation.v1.DataAggregationService/GetPackages
+
+{
+  "ids": [],
+  "from": "{{from}}",
+  "to": "{{to}}"
+}
+
+### InvalidArgument: from позже to
+GRPC {{grpcHost}}/dataaggregation.v1.DataAggregationService/GetPackages
+
+{
+  "ids": ["{{packageId1}}"],
+  "from": "{{to}}",
+  "to": "{{from}}"
+}
+
+### InvalidArgument: невалидный uuid
+GRPC {{grpcHost}}/dataaggregation.v1.DataAggregationService/GetPackages
+
+{
+  "ids": ["not-a-uuid"],
+  "from": "{{from}}",
+  "to": "{{to}}"
+}
