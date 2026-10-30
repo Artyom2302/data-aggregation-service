@@ -1,0 +1,7 @@
+.git
+.idea
+.task
+bin
+.env
+Dockerfile
+docker-compose.yaml
